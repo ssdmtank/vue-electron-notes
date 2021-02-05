@@ -1,7 +1,7 @@
 <!--
  * @Author: KingWin
  * @Date: 2021-01-29 13:38:34
- * @LastEditTime: 2021-02-05 15:06:09
+ * @LastEditTime: 2021-02-05 16:13:10
  * @Description: 
 -->
 <template>
@@ -9,7 +9,7 @@
     <div class="sidebar-container">
       <file-search
         v-model="searchTitle"
-        @create="fileCreate"
+        @create="throttle"
         @clear="getFileList"
         @change="handleChange"
         @search="handleSearch"
@@ -54,7 +54,9 @@ export default {
       fileList: [],
       fileItem: {},
       activeIndex: 0,
-      selectedFile: {} // 右侧菜单选中的文件数据
+      selectedFile: {}, // 右侧菜单选中的文件数据
+      lastTime: null,
+      throttleTimer: null
     }
   },
   mounted() {
@@ -78,6 +80,19 @@ export default {
         this.getFileList()
       }
     },
+    // 节流 一定时间内多次点击只生效一次
+    throttle() {
+      const now = +new Date()
+      if (this.lastTime && this.lastTime - now < 200) {
+        // 在200ms内点击多次，只有一次生效
+        clearTimeout(this.throttleTimer)
+      }
+      this.throttleTimer = setTimeout(() => {
+        this.fileCreate()
+        this.lastTime = +new Date()
+      }, 200)
+    },
+
     // 新增笔记
     fileCreate() {
       // markdown 存储标题和内容就够了
